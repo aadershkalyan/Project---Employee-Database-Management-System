@@ -1,0 +1,218 @@
+import mysql.connector as sql
+conn = sql.connect(host = "localhost", user = "root", password = "mysqldps", database = "EMPLOYEE_MANAGEMENT_SYSTEM")
+cursor = conn.cursor(buffered = True)
+try :
+  creating_employees = ("Create table employeeInfo (employee_Id varchar(20), Name varchar(20), Dept varchar(20), gender char(1), Age int, remarks varchar(120), task varchar(50), Task_Done char(1));")
+  cursor.execute(creating_employees)
+  conn.commit()
+except:
+  pass
+try:
+  
+  creating_userInfo = ("create table userdata (username varchar(20), password varchar(8), designation varchar(20));")
+  cursor.execute(creating_userInfo)
+  conn.commit()
+except :
+  print("ther is an error")
+
+def createacc():
+  username = input("Enter a username")
+  checkdata = ("SELECT Name, COUNT(*) FROM employeeInfo WHERE NAME = '%s' GROUP BY NAME;")
+  cursor.execute((checkdata)%(username))
+  cursor.fetchall()
+  row_count = cursor.rowcount
+  if row_count >0 :
+    while row_count != 0:
+      print("The username already exist")
+      username = input("enter a username")
+      cursor.execute((checkdata)%(username))
+      cursor.fetchall()
+      row_count = cursor.rowcount
+  if row_count ==0:
+    passw = input("Enter a password")
+    position = input("Enter your position (employee/er)")
+  if (position.lower() == "employee"):
+    print("we will need more information to register your account")
+    name = input("Enter your name ")
+    Emp_dept=input( "enter department you want to join : ")
+    Emp_gender = input("enter your gender('M' or 'F' )")
+    Emp_salary=int(input ("enter your salary:"))
+
+    age = int(input("Enter your age"))
+    birth = 2020 - age
+    Emp_Id = name+ str(birth)[2:4]
+    sql_insert =(
+      "Insert into employeeInfo(employee_Id,Name,Dept,gender,sallary,age) "
+      "values('%s','%s','%s','%s',%s,%s);")
+    values= (Emp_Id, name, Emp_dept, Emp_gender, Emp_salary, age)
+    cursor.execute(sql_insert%values)
+    print("Adding values.. ")
+    addacc(username, passw, position)
+    conn.commit()
+    print("congrats you have joined suceessfully")
+    print("REGISTRATION SUCCESSFUL ")
+  if position.lower() == "employer":
+    addacc(username, passw, position)
+    print("account succesfully added")
+    conn.commit()
+def addacc(username, password, position):
+  sql_update= (
+    "INSERT INTO userdata ( username, password, designation)"
+    "VALUES('%s', '%s', '%s');")
+  values2 = (username, password, position)
+  cursor.execute(sql_update%values2)
+  conn.commit()
+  def login():
+  logged_in = False
+  position = ""
+  username = input("Enter your username ")
+  passw  = input("Enter your password ")
+  checkloginInfo =(
+    "Select* FROM userdata WHERE username = '%s' AND password = '%s';")
+  givenInfo = (username, passw)
+  cursor.execute(checkloginInfo%givenInfo)
+  result = cursor.fetchall()
+  for i in result:
+    if i[0] == username and i[1]== passw:
+      logged_in = True
+  while logged_in == False:
+    print("The username or password is wrong")
+    username = input("Enter your username again ")
+    passw  = input("Enter your password again ")
+    givenInfo = (username, passw)
+    cursor.execute(checkloginInfo%givenInfo)
+    result = cursor.fetchall()
+    for i in result:
+      if i[0] == username and i[1]== passw:
+        logged_in = True
+  conn.commit()
+  cursor.execute(checkloginInfo%givenInfo)
+  result = cursor.fetchall()
+  for i in result:
+    if i[2] == "employer":
+      position = "employer"
+    elif i[2] == "employee":
+      position = "employee"
+  if (position == "employer" ):
+    employertasks()
+  if (position == "employee"):
+    employeetasks()
+  def employeetasks():
+  print("1. View remarks")
+  print("2. View Tasks")
+  choice2 = int(input("what do you wish to do today ?"))
+  if choice2 == 1 :
+    view_remark =(
+      "SELECT remarks FROM employeeInfo WHERE "
+      "employee_Id = '%s' ; ")
+    name = input("enter your employee id")
+    cursor.execute(view_remark%name)
+    performance = cursor.fetchall()
+    print(performance)
+    conn.commit()
+  elif choice2 == 2:
+    emp_id = input("enter your employee id")
+    check_task = ("select task from employeeInfo where employee_Id = '%s' ;")
+    cursor.execute(check_task%emp_id)
+    see = cursor.fetchall()
+    print(see[0])
+    complete= input("has the task been completed? (y/n)")
+    if complete == "y" :
+      update_complete = ("update employeeInfo set Task_Done ='Y' where employee_Id = '%s';")
+      cursor.execute(update_complete%emp_id)
+      print("updated")
+      conn.commit()
+    else:
+      print("try to complete it as early as possible")
+
+
+def employertasks():
+  print("greetings..")
+  print("1.Employee details")
+  print("2.Add remarks for an employee")
+  print("3. assign tasks to employee") 
+  print("4. Increament Salary")
+  print("5. Main menu")
+ 
+  choice=int(input("enter the choice:"))
+  if choice==1:
+    Details()
+  elif choice==2:
+    Work_experience()
+  elif choice == 3:
+    assign_tasks()
+  elif choice == 4:
+    update_salary()
+  elif choice ==5 :
+    startup()
+  conn.commit()
+
+def Details():
+  dept_info = input("which department are you looking for ? (all/dept)")
+  cursor.execute("Select distinct Dept from employeeInfo;")
+  Dept= cursor.fetchall()
+  if dept_info == "all":
+    cursor.execute("SELECT* FROM employeeInfo ORDER BY Name asc;")
+    results=cursor.fetchall()
+    a=cursor.rowcount
+    print("total employees are",a)
+    for x in results:
+      print(x)
+  elif (dept_info,) in Dept:
+    sql_com = ("Select* from employeeInfo where Dept = '%s' ; ")
+    cursor.execute(sql_com%dept_info)
+    Results = cursor.fetchall()
+    for i in Results:
+      print(i)
+      a=cursor.rowcount
+      print("total employees are",a)
+      conn.commit()
+  employertasks()
+      
+def Work_experience():
+  Employee_ID=input("enter your employee's ID")
+  Employee_performance=input("enter your performance: ")
+  add_remark = ("Update employeeInfo set remarks = '%s' where employee_Id = '%s' ;")
+  employeedata = (Employee_performance, Employee_ID)
+  cursor.execute(add_remark%employeedata)
+  conn.commit()
+  print("Work Experience Added")
+  employertasks()
+
+def assign_tasks():
+  employee_n = input("whom would you like to appoint task(s)(enter employee Id)")
+  task = input("enter the task")
+  addtask = ("update employeeInfo set task =  '%s' where employee_Id = '%s';")
+  emp_details = (task, employee_n)
+  cursor.execute(addtask%emp_details)
+  print("task added")
+  
+def update_salary():
+  Employee_Id = input("enter the employee's ID")
+  emp_sal = int(input("enter the increament in salary"))
+  previous_sal = ("select sallary from employeeInfo where employee_Id = '%s';")
+  cursor.execute(previous_sal%Employee_Id)
+  old_sal =cursor.fetchall()
+  print("The previous salary was ",old_sal[0])
+  increament = ("Update employeeInfo set sallary = %s where employee_Id = '%s' ;")
+  employee_Info =  (emp_sal, Employee_Id)
+  cursor.execute(increament%employee_Info)
+  print("salary updated")
+  employertasks()
+  
+def startup():
+  
+  print("WELCOME TO EMPLOYEES MANAGEMENT SERVICE ")
+  work = input("To continue please login in or create and account(login/createacc)")
+  if work.lower() == "login" :
+    login()
+  if work.lower()  == "createacc":
+    createacc()
+    print("congrats, your account is created")
+    print("login to work on our software")
+    login()
+  works = ['login','createacc']
+  while work.lower() not in works:
+    work = input("please state one of the following(createacc/login)")
+    
+startup()
