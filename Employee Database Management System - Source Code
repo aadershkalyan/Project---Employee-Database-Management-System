@@ -215,4 +215,4 @@ def startup():
   while work.lower() not in works:
     work = input("please state one of the following(createacc/login)")
     
- 
+startup()
