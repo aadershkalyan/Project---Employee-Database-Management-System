@@ -1,6 +1,6 @@
 import mysql.connector as sql
 
-conn = sql.connect(host = "localhost", user = "root", password = "ashish2008")
+conn = sql.connect(host = "localhost", user = "root", password = "mysqlpass")
 cursor = conn.cursor(buffered = True)
 
 try:
@@ -10,7 +10,7 @@ try:
 except:
   cursor.execute("use employee_management_system")
 try :
-   creating_employees = ("Create table employee_Info (employee_Id varchar(20), Name varchar(20), Dept varchar(20), gender char(1), salary int,  Age int, remarks varchar(120), task varchar(50), 	          Task_Done char(1));")
+   creating_employees = ("Create table employee_Info (employee_Id varchar(20), Name varchar(20), Dept varchar(20), gender char(1), salary int,  Age int, remarks varchar(120), task varchar(50), Task_Done char(1));")
   cursor.execute(creating_employees)
   conn.commit()
 
